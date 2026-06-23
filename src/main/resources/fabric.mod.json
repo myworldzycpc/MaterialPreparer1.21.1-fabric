@@ -3,9 +3,9 @@
 	"id": "material-preparer",
 	"version": "${version}",
 	"name": "Material Preparer",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A mod that provides a simple way to prepare materials.",
 	"authors": [
-		"Me!"
+		"myworldzycpc"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient"
+		],
+		"modmenu": [
+			"io.github.myworldzycpc.material_preparer.client.ModMenuIntegration"
 		]
 	},
 	"mixins": [
