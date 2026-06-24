@@ -1,5 +1,6 @@
 package io.github.myworldzycpc.material_preparer.client.screen;
 
+import dev.isxander.yacl3.api.ListOptionEntry;
 import io.github.myworldzycpc.material_preparer.client.config.ItemEntry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -17,27 +18,34 @@ import java.util.List;
 import static io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient.mc;
 
 public class EditItemScreen extends ScreenHasParent {
-    private final ItemEntry entry;
+    private final ListOptionEntry<ItemEntry> option;
     private EditBox searchBox;
     private EditBox countBox;
     private Item selectedItem;
+    private int selectedCount;
     private List<Item> filteredItems;
     private List<Item> allItems;
     private int scrollOffset = 0;
     private static final int ITEMS_PER_ROW = 8;
     private static final int ITEM_SIZE = 18;
-    private static final int GRID_LEFT = 20;
     private static final int GRID_TOP = 70;
+    private int gridLeft; // 动态计算的网格左边界（居中）
 
-    public EditItemScreen(Screen parent, ItemEntry entry) {
-        super(parent, Component.literal("Edit Item"));
-        this.entry = entry;
-        this.selectedItem = entry.item;
+    public EditItemScreen(Screen parent, ListOptionEntry<ItemEntry> option) {
+        super(parent, Component.translatable("gui.material_preparer.edit_item.title"));
+        this.option = option;
+        ItemEntry entry = option.pendingValue();
+        this.selectedItem = entry.item();
+        this.selectedCount = entry.count();
     }
 
     @Override
     protected void init() {
         super.init();
+
+        // 计算网格居中位置
+        int gridWidth = ITEMS_PER_ROW * ITEM_SIZE;
+        gridLeft = (width - gridWidth) / 2;
 
         allItems = new ArrayList<>();
         for (Item item : BuiltInRegistries.ITEM) {
@@ -47,20 +55,20 @@ public class EditItemScreen extends ScreenHasParent {
         }
         filteredItems = new ArrayList<>(allItems);
 
-        searchBox = new EditBox(mc.font, width / 2 - 100, 40, 200, 20, Component.literal("Search"));
+        searchBox = new EditBox(mc.font, width / 2 - 100, 40, 200, 20, Component.translatable("gui.material_preparer.edit_item.search"));
         searchBox.setResponder(this::onSearchChanged);
         addRenderableWidget(searchBox);
 
-        countBox = new EditBox(mc.font, width / 2 - 50, height - 50, 100, 20, Component.literal("Count"));
+        countBox = new EditBox(mc.font, width / 2 - 50, height - 50, 100, 20, Component.translatable("gui.material_preparer.edit_item.count"));
         countBox.setFilter(input -> input.matches("\\d*"));
-        countBox.setValue(String.valueOf(entry.count));
+        countBox.setValue(String.valueOf(selectedCount));
         addRenderableWidget(countBox);
 
-        addRenderableWidget(Button.builder(Component.literal("Save"), btn -> save())
+        addRenderableWidget(Button.builder(Component.translatable("gui.material_preparer.edit_item.save"), btn -> save())
                 .bounds(width / 2 - 100, height - 25, 90, 20)
                 .build());
 
-        addRenderableWidget(Button.builder(Component.literal("Cancel"), btn -> onClose())
+        addRenderableWidget(Button.builder(Component.translatable("gui.material_preparer.edit_item.cancel"), btn -> onClose())
                 .bounds(width / 2 + 10, height - 25, 90, 20)
                 .build());
     }
@@ -82,13 +90,15 @@ public class EditItemScreen extends ScreenHasParent {
     }
 
     private void save() {
-        entry.item = selectedItem;
+        int count;
         try {
-            entry.count = Integer.parseInt(countBox.getValue());
-            if (entry.count < 1) entry.count = 1;
+            count = Integer.parseInt(countBox.getValue());
+            if (count < 1) count = 1;
         } catch (NumberFormatException e) {
-            entry.count = 1;
+            count = 1;
         }
+        ItemEntry newEntry = new ItemEntry(selectedItem, count);
+        option.requestSet(newEntry);
         onClose();
     }
 
@@ -98,19 +108,19 @@ public class EditItemScreen extends ScreenHasParent {
         super.render(graphics, mouseX, mouseY, delta);
 
         graphics.drawCenteredString(mc.font, this.title, width / 2, 10, 0xFFFFFF);
-        graphics.drawString(mc.font, Component.literal("Search:"), GRID_LEFT, 45, 0xAAAAAA);
-        graphics.drawString(mc.font, Component.literal("Count:"), width / 2 - 80, height - 45, 0xAAAAAA);
+        graphics.drawString(mc.font, Component.translatable("gui.material_preparer.edit_item.search_label"), searchBox.getX() - mc.font.width(Component.translatable("gui.material_preparer.edit_item.search_label")) - 5, 45, 0xAAAAAA);
+        graphics.drawString(mc.font, Component.translatable("gui.material_preparer.edit_item.count_label"), width / 2 - 80, height - 45, 0xAAAAAA);
 
         drawItemGrid(graphics, mouseX, mouseY);
 
         if (selectedItem != null) {
             String id = BuiltInRegistries.ITEM.getKey(selectedItem).toString();
-            graphics.drawCenteredString(mc.font, Component.literal("Selected: " + id), width / 2, height - 80, 0xFFFF55);
+            graphics.drawCenteredString(mc.font, Component.translatable("gui.material_preparer.edit_item.selected", id), width / 2, height - 80, 0xFFFF55);
         }
     }
 
     private void drawItemGrid(GuiGraphics graphics, int mouseX, int mouseY) {
-        int startX = GRID_LEFT;
+        int startX = gridLeft;
         int startY = GRID_TOP;
         int rowsVisible = Math.max(1, (height - GRID_TOP - 100) / ITEM_SIZE);
 
@@ -152,7 +162,7 @@ public class EditItemScreen extends ScreenHasParent {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            int startX = GRID_LEFT;
+            int startX = gridLeft;
             int startY = GRID_TOP;
             int rowsVisible = Math.max(1, (height - GRID_TOP - 100) / ITEM_SIZE);
 

@@ -29,13 +29,13 @@ public class ItemEntryController implements Controller<ItemEntry> {
 
     @Override
     public Component formatValue() {
-        Item item = option.pendingValue().item;
+        Item item = option.pendingValue().item();
         if (item == null) {
-            return Component.literal("None");
+            return Component.translatable("gui.material_preparer.none");
         }
         String itemId = BuiltInRegistries.ITEM.getKey(item).toString();
         Component displayName = item.getDefaultInstance().getHoverName();
-        return Component.translatable("%1$s (%2$s) x %3$s", itemId, displayName, option.pendingValue().count);
+        return Component.translatable("%1$s (%2$s) x %3$s", itemId, displayName, option.pendingValue().count());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ItemEntryController implements Controller<ItemEntry> {
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (!isMouseOver(mouseX, mouseY) || !isAvailable())
                 return false;
-            mc.setScreen(new EditItemScreen(mc.screen, control.option.pendingValue()));
+            mc.setScreen(new EditItemScreen(mc.screen, control.option));
             return super.mouseClicked(mouseX, mouseY, button);
         }
 

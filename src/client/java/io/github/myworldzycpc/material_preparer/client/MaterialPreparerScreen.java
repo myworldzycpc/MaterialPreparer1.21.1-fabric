@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 public class MaterialPreparerScreen extends Screen {
 
     protected MaterialPreparerScreen() {
-        super(Component.literal("Material Preparer Config"));
+        super(Component.translatable("gui.material_preparer.title"));
     }
 
     @Override

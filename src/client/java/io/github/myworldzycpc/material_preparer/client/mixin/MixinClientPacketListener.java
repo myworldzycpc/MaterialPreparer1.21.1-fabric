@@ -31,6 +31,7 @@ public class MixinClientPacketListener {
         if (mc.player == null) return;
 //        MaterialPreparerClient.showMessage(Component.literal("Container Opened Packet Received: " + packet));
         if (currentExplorationPhase == ExplorationPhase.WAIT_OPEN) currentExplorationPhase = ExplorationPhase.WAIT_SET_CONTENTS;
+        if (currentExplorationPhase == ExplorationPhase.WAIT_OUTPUT_OPEN) currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_SET_CONTENTS;
     }
 
     @Inject(method = "handleContainerSetSlot", at = @At("RETURN"), cancellable = false)
@@ -56,23 +57,45 @@ public class MixinClientPacketListener {
                     MaterialPreparerClient.updateChestItems(pos, ((SimpleContainer) chestMenu.getContainer()).getItems());
                 }
             } else {
-                MaterialPreparerClient.showMessage(Component.literal("Chest Interaction Record Type is not Chest, ignoring packet."));
+                MaterialPreparerClient.showMessage(Component.translatable("message.material_preparer.chest_record_not_chest"));
             }
         }
-        if (isCollectingItems && mc.player.containerMenu instanceof ChestMenu chestMenu) {
-            List<ItemStack> chestItems = ((SimpleContainer) chestMenu.getContainer()).getItems();
-            for (int i = 0; i < chestItems.size(); i++) {
-                ItemStack stack = chestItems.get(i);
-                if (!stack.isEmpty() && neededItems.containsKey(stack.getItem())) {
-                    int remaining = neededItems.get(stack.getItem());
-                    int moving = Math.min(remaining, stack.getCount());
-                    if (moving > 0) {
-                        neededItems.put(stack.getItem(), remaining - moving);
-                        quickMoveContainerSlot(i);
+
+        // 转移物品到输出容器
+        if (currentExplorationPhase == ExplorationPhase.WAIT_OUTPUT_SET_CONTENTS) {
+            if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
+                int playerInvStart = getPlayerInventoryStartSlot();
+                // 遍历玩家背包，将物品列表中的物品转移到输出容器
+                for (int i = 0; i < 36; i++) {
+                    int slot = playerInvStart + i;
+                    ItemStack stack = mc.player.containerMenu.getSlot(slot).getItem();
+                    if (!stack.isEmpty()) {
+                        // 检查是否在物品列表中
+                        boolean inItemList = false;
+                        for (var entry : itemList) {
+                            if (entry.item() == stack.getItem()) {
+                                inItemList = true;
+                                break;
+                            }
+                        }
+                        if (inItemList) {
+                            quickMoveContainerSlot(slot);
+                        }
                     }
                 }
+                currentExplorationPhase = ExplorationPhase.TRANSFERRING_TO_OUTPUT;
+            } else {
+                // 不是箱子，跳过，直接关闭
+                currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_CLOSE;
             }
         }
-        if (currentExplorationPhase == ExplorationPhase.WAIT_SET_CONTENTS) currentExplorationPhase = ExplorationPhase.WAIT_CLOSE;
+
+        if (currentExplorationPhase == ExplorationPhase.WAIT_SET_CONTENTS) {
+            if (isCollectingItems) {
+                currentExplorationPhase = ExplorationPhase.PROCESS_NEXT_ITEM;
+            } else {
+                currentExplorationPhase = ExplorationPhase.WAIT_CLOSE;
+            }
+        }
     }
 }

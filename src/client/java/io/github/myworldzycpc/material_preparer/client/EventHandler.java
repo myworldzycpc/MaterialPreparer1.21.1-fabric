@@ -19,6 +19,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -117,8 +121,6 @@ public class EventHandler {
 
     public static void onWorldRenderLast(WorldRenderContext context) {
         if (config.showDebuggingBorders) {
-            if (chestMap.isEmpty()) return;
-
             PoseStack poseStack = context.matrixStack();
             if (poseStack == null) return;
             MultiBufferSource consumers = context.consumers();
@@ -126,8 +128,13 @@ public class EventHandler {
             VertexConsumer vertexConsumer = consumers.getBuffer(RenderType.LINES);
             Vec3 cameraPos = context.camera().getPosition();
 
+            // 渲染普通容器
             for (var entry : chestMap.entrySet()) {
                 BlockPos pos = entry.getKey();
+                // 跳过黑名单和输出容器，它们会单独渲染
+                if (blacklistedContainers.contains(pos)) continue;
+                if (outputContainers.contains(pos)) continue;
+
                 boolean isNull = entry.getValue() == null;
 
                 float r = isNull ? 0.5f : 1.0f;
@@ -135,27 +142,46 @@ public class EventHandler {
                 float b = isNull ? 0.5f : 0.0f;
                 float a = 1.0f;
 
-                poseStack.pushPose();
-                poseStack.translate(
-                        pos.getX() - cameraPos.x,
-                        pos.getY() - cameraPos.y,
-                        pos.getZ() - cameraPos.z
-                );
-                LevelRenderer.renderLineBox(
-                        poseStack, vertexConsumer,
-                        0, 0, 0,
-                        1, 1, 1,
-                        r, g, b, a
-                );
-                poseStack.popPose();
+                renderBox(poseStack, vertexConsumer, cameraPos, pos, r, g, b, a);
+            }
+
+            // 渲染黑名单容器（黑色）
+            for (BlockPos pos : blacklistedContainers) {
+                renderBox(poseStack, vertexConsumer, cameraPos, pos, 0.0f, 0.0f, 0.0f, 1.0f);
+            }
+
+            // 渲染输出容器（红色）
+            for (BlockPos pos : outputContainers) {
+                renderBox(poseStack, vertexConsumer, cameraPos, pos, 1.0f, 0.0f, 0.0f, 1.0f);
             }
         }
+    }
+
+    private static void renderBox(PoseStack poseStack, VertexConsumer vertexConsumer, Vec3 cameraPos, BlockPos pos, float r, float g, float b, float a) {
+        poseStack.pushPose();
+        poseStack.translate(
+                pos.getX() - cameraPos.x,
+                pos.getY() - cameraPos.y,
+                pos.getZ() - cameraPos.z
+        );
+        LevelRenderer.renderLineBox(
+                poseStack, vertexConsumer,
+                0, 0, 0,
+                1, 1, 1,
+                r, g, b, a
+        );
+        poseStack.popPose();
     }
 
     public static void onDisconnect(ClientPacketListener clientPacketListener, Minecraft minecraft) {
         chestMap.clear();
         craftingTables.clear();
-        showMessage(Component.literal("Disconnected from the server"));
+        blacklistedContainers.clear();
+        outputContainers.clear();
+        scheduledBlockPosForExploration.clear();
+        scheduledOutputContainers.clear();
+        suspendedContainerPos = null;
+        showMessage(Component.translatable("message.material_preparer.disconnected"));
     }
 
     private static final Set<Integer> prevKeyStates = new HashSet<>();
@@ -199,6 +225,9 @@ public class EventHandler {
     }
 
     public static void onClientTick(Minecraft mc) {
+        if (mc.player == null) return;
+        tickCounter++;
+        processContainerClickQueue();
         checkCustomKeybinds(mc);
         switch (currentExplorationPhase) {
             case WAIT_NEXT -> {
@@ -218,25 +247,132 @@ public class EventHandler {
                                 int remaining = entry.getValue();
                                 if (remaining > 0) {
                                     allFound = false;
-                                    showMessage(Component.literal("Warning: " + entry.getKey().getDescription().getString() + " x" + remaining + " not found"));
+                                    showMessage(Component.translatable("message.material_preparer.warning_item_not_found", entry.getKey().getDescription(), remaining));
                                 }
                             }
                             if (allFound) {
-                                showMessage(Component.literal("All items collected successfully"));
+                                showMessage(Component.translatable("message.material_preparer.all_items_collected"));
                             } else {
-                                showMessage(Component.literal("Item collection finished (some items missing)"));
+                                showMessage(Component.translatable("message.material_preparer.item_collection_finished"));
                             }
                         } else {
-                            showMessage(Component.literal("Finished exploring all nearby containers"));
+                            showMessage(Component.translatable("message.material_preparer.finished_exploring"));
                         }
                     }
                 }
             }
+            case PROCESS_NEXT_ITEM -> {
+                if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
+                    List<ItemStack> chestItems = ((SimpleContainer) chestMenu.getContainer()).getItems();
+                    boolean found = false;
+                    for (int i = 0; i < chestItems.size(); i++) {
+                        ItemStack stack = chestItems.get(i);
+                        if (!stack.isEmpty() && neededItems.containsKey(stack.getItem())) {
+                            int remaining = neededItems.get(stack.getItem());
+                            if (remaining > 0) {
+                                int moving = Math.min(remaining, stack.getCount());
+                                neededItems.put(stack.getItem(), remaining - moving);
+                                if (config.alwaysQuickMove) {
+                                    quickMoveContainerSlot(i);
+                                } else {
+                                    preciseMoveContainerSlot(i, moving);
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) {
+                        currentExplorationPhase = ExplorationPhase.WAIT_ITEM_MOVE;
+                    } else {
+                        // 所有物品都处理完了
+                        currentExplorationPhase = ExplorationPhase.WAIT_CLOSE;
+                    }
+                } else {
+                    // 不是箱子菜单，直接关闭
+                    currentExplorationPhase = ExplorationPhase.WAIT_CLOSE;
+                }
+            }
+            case WAIT_ITEM_MOVE -> {
+                if (!containerClickQueue.isEmpty()) return;
+                // 点击队列清空了，检查背包是否满了
+                if (isPlayerInventoryFull()) {
+                    // 背包满了，挂起当前容器，去输出容器转移
+                    suspendedContainerPos = lastInteractionRecord.pos;
+                    currentExplorationPhase = ExplorationPhase.WAIT_CLOSE;
+                } else {
+                    // 背包没满，继续处理下一个物品
+                    currentExplorationPhase = ExplorationPhase.PROCESS_NEXT_ITEM;
+                }
+            }
             case WAIT_CLOSE -> {
+                if (!containerClickQueue.isEmpty()) return;
                 if (mc.screen != null) {
                     mc.screen.onClose();
                 }
-                currentExplorationPhase = ExplorationPhase.WAIT_NEXT;
+                // 如果是收集模式，检查背包是否已满，需要转移到输出容器
+                if (isCollectingItems && isPlayerInventoryFull()) {
+                    // 初始化计划输出容器列表
+                    scheduledOutputContainers.clear();
+                    List<BlockPos> notFullContainers = new ArrayList<>();
+                    List<BlockPos> otherContainers = new ArrayList<>();
+                    Vec3 playerPos = mc.player.getEyePosition();
+                    double range = mc.player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+
+                    for (BlockPos pos : outputContainers) {
+                        if (playerPos.distanceTo(pos.getCenter()) <= range) {
+                            if (isContainerNotFull(pos)) {
+                                notFullContainers.add(pos);
+                            } else {
+                                otherContainers.add(pos);
+                            }
+                        }
+                    }
+                    notFullContainers.sort(Comparator.comparingDouble(pos -> playerPos.distanceTo(pos.getCenter())));
+                    otherContainers.sort(Comparator.comparingDouble(pos -> playerPos.distanceTo(pos.getCenter())));
+                    scheduledOutputContainers.addAll(notFullContainers);
+                    scheduledOutputContainers.addAll(otherContainers);
+                    tryNextOutputContainer();
+                } else {
+                    currentExplorationPhase = ExplorationPhase.WAIT_NEXT;
+                }
+            }
+            case WAIT_OUTPUT_OPEN -> {
+                // 等待输出容器打开，由 MixinClientPacketListener 处理
+            }
+            case WAIT_OUTPUT_SET_CONTENTS -> {
+                // 等待输出容器内容，由 MixinClientPacketListener 处理
+            }
+            case TRANSFERRING_TO_OUTPUT -> {
+                // 正在转移物品，等待点击队列清空
+                if (containerClickQueue.isEmpty()) {
+                    currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_CLOSE;
+                }
+            }
+            case WAIT_OUTPUT_CLOSE -> {
+                if (!containerClickQueue.isEmpty()) return;
+                if (mc.screen != null) {
+                    mc.screen.onClose();
+                }
+                // 检查转移后背包是否还是满的
+                if (isPlayerInventoryFull()) {
+                    // 背包还是满的，尝试下一个输出容器
+                    showDebugMessage("Inventory is still full, try the next output container");
+                    tryNextOutputContainer();
+                } else {
+                    // 还有空间
+                    scheduledOutputContainers.clear();
+                    if (suspendedContainerPos != null) {
+                        // 有挂起的容器，回去继续处理
+                        currentExplorationPhase = ExplorationPhase.WAIT_OPEN;
+                        lastInteractionRecord.updateRecord(suspendedContainerPos, InteractionRecord.Type.CHEST);
+                        interactBlock(suspendedContainerPos);
+                        suspendedContainerPos = null;
+                    } else {
+                        // 没有挂起的容器，继续收集
+                        currentExplorationPhase = ExplorationPhase.WAIT_NEXT;
+                    }
+                }
             }
         }
     }
@@ -254,6 +390,27 @@ public class EventHandler {
         return InteractionResult.PASS;
     }
 
+    // 尝试下一个输出容器
+    private static void tryNextOutputContainer() {
+        if (scheduledOutputContainers.isEmpty()) {
+            // 所有输出容器都尝试过了，停止收集
+            currentExplorationPhase = ExplorationPhase.IDLE;
+            isCollectingItems = false;
+            showMessage(Component.translatable("message.material_preparer.inventory_and_output_full"));
+            return;
+        }
+
+        BlockPos outputPos = scheduledOutputContainers.removeFirst();
+        currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_OPEN;
+        lastInteractionRecord.updateRecord(outputPos, InteractionRecord.Type.CHEST);
+        if (mc.level != null && mc.level.getBlockState(outputPos).getBlock() instanceof ChestBlock) {
+            interactBlock(outputPos);
+        } else {
+            // 不是箱子，直接跳到 WAIT_OUTPUT_CLOSE，继续尝试下一个
+            currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_CLOSE;
+        }
+    }
+
     public static void onChatMessage(String message) {
         if (mc.player != null) {
             if (message.contains("#opencraftingtable")) {
@@ -267,9 +424,9 @@ public class EventHandler {
     public static void startItemCollection() {
         if (mc.player == null) return;
 
-        Path csvPath = mc.gameDirectory.toPath().resolve("config/material_preparer/test.csv");
+        Path csvPath = mc.gameDirectory.toPath().resolve("config/material_preparer/item_list.csv");
         if (!Files.exists(csvPath)) {
-            showMessage(Component.literal("CSV file not found at " + csvPath));
+            showMessage(Component.translatable("message.material_preparer.csv_file_not_found", csvPath.toString()));
             return;
         }
 
@@ -281,7 +438,7 @@ public class EventHandler {
                 if (line.isEmpty() || line.startsWith("#")) continue;
                 String[] parts = line.split(",", 2);
                 if (parts.length != 2) {
-                    showMessage(Component.literal("Invalid CSV line: " + line));
+                    showMessage(Component.translatable("message.material_preparer.invalid_csv_line", line));
                     continue;
                 }
                 String itemId = parts[0].trim();
@@ -289,7 +446,7 @@ public class EventHandler {
                 try {
                     count = Integer.parseInt(parts[1].trim());
                 } catch (NumberFormatException e) {
-                    showMessage(Component.literal("Invalid count in CSV line: " + line));
+                    showMessage(Component.translatable("message.material_preparer.invalid_csv_count", line));
                     continue;
                 }
 
@@ -298,30 +455,77 @@ public class EventHandler {
                         : ResourceLocation.parse("minecraft:" + itemId);
                 Item item = BuiltInRegistries.ITEM.get(id);
                 if (item == Items.AIR) {
-                    showMessage(Component.literal("Unknown item: " + itemId));
+                    showMessage(Component.translatable("message.material_preparer.unknown_item", itemId));
                     continue;
                 }
                 items.put(item, count);
             }
         } catch (IOException e) {
-            showMessage(Component.literal("Failed to read CSV: " + e.getMessage()));
+            showMessage(Component.translatable("message.material_preparer.failed_read_csv", e.getMessage()));
             return;
         }
 
         if (items.isEmpty()) {
-            showMessage(Component.literal("No valid items found in CSV"));
+            showMessage(Component.translatable("message.material_preparer.no_valid_items_in_csv"));
             return;
         }
 
         neededItems.clear();
         neededItems.putAll(items);
 
+        // 如果开启了忽略已有物品，从需求中减去玩家背包和输出容器中已有的数量
+        if (config.ignoreExistingItems) {
+            // 减去玩家背包中的物品
+            Inventory playerInv = mc.player.getInventory();
+            for (int i = 0; i < 36; i++) { // 主背包 + 快捷栏共 36 格
+                ItemStack stack = playerInv.getItem(i);
+                if (!stack.isEmpty()) {
+                    Item item = stack.getItem();
+                    if (neededItems.containsKey(item)) {
+                        int remaining = neededItems.get(item) - stack.getCount();
+                        if (remaining <= 0) {
+                            neededItems.remove(item);
+                        } else {
+                            neededItems.put(item, remaining);
+                        }
+                    }
+                }
+            }
+
+            // 减去输出容器中已缓存的物品
+            for (BlockPos pos : outputContainers) {
+                List<ItemStack> containerItems = chestMap.get(pos);
+                if (containerItems == null) continue;
+                for (ItemStack stack : containerItems) {
+                    if (stack.isEmpty()) continue;
+                    Item item = stack.getItem();
+                    if (neededItems.containsKey(item)) {
+                        int remaining = neededItems.get(item) - stack.getCount();
+                        if (remaining <= 0) {
+                            neededItems.remove(item);
+                        } else {
+                            neededItems.put(item, remaining);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 如果没有需要收集的物品，直接返回
+        if (neededItems.isEmpty()) {
+            showMessage(Component.translatable("message.material_preparer.all_items_already_in_inventory"));
+            return;
+        }
+
         Vec3 playerPos = mc.player.getEyePosition();
         double range = mc.player.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
 
         scheduledBlockPosForExploration.clear();
+        suspendedContainerPos = null;
         for (BlockPos pos : chestMap.keySet()) {
             if (playerPos.distanceTo(pos.getCenter()) <= range) {
+                if (blacklistedContainers.contains(pos)) continue;
+                if (outputContainers.contains(pos)) continue;
                 scheduledBlockPosForExploration.add(pos);
             }
         }
@@ -329,7 +533,7 @@ public class EventHandler {
 
         isCollectingItems = true;
         currentExplorationPhase = ExplorationPhase.WAIT_NEXT;
-        showMessage(Component.literal("Collecting " + items.size() + " item types from " + scheduledBlockPosForExploration.size() + " chests..."));
+        showMessage(Component.translatable("message.material_preparer.collecting_items", items.size(), scheduledBlockPosForExploration.size()));
     }
 
     public static void onScreenBeforeInit(Minecraft minecraft, Screen screen, int scaledWidth, int scaledHeight) {

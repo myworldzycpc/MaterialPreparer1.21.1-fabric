@@ -40,4 +40,28 @@ public class MaterialPreparerConfig {
     @SerialEntry
     public String loadItemListFromCSVKeybind = "unbound";
 
+    @SerialEntry
+    public Integer minClickInterval = 0;
+
+    @SerialEntry
+    public boolean alwaysQuickMove = false;
+    @SerialEntry
+    public String alwaysQuickMoveKeybind = "unbound";
+
+    @SerialEntry
+    public boolean ignoreExistingItems = false;
+    @SerialEntry
+    public String ignoreExistingItemsKeybind = "unbound";
+
+    @SerialEntry
+    public String toggleBlacklistKeybind = "unbound";
+    @SerialEntry
+    public String toggleOutputContainerKeybind = "unbound";
+    @SerialEntry
+    public String clearAllMarkersKeybind = "unbound";
+
+    @SerialEntry
+    public boolean showDebugMessages = false;
+    @SerialEntry
+    public String showDebugMessagesKeybind = "unbound";
 }
