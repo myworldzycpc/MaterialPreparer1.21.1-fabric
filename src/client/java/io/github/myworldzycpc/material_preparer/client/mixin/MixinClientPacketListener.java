@@ -11,6 +11,7 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,17 +45,25 @@ public class MixinClientPacketListener {
     public void handleContainerContent(ClientboundContainerSetContentPacket packet, CallbackInfo ci) {
         if (mc.player == null) return;
 //        MaterialPreparerClient.showMessage(Component.literal("Container Content Packet Received: " + packet));
-        if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
+        if (mc.player.containerMenu instanceof ChestMenu || mc.player.containerMenu instanceof ShulkerBoxMenu) {
             if (lastInteractionRecord.type == InteractionRecord.Type.CHEST) {
                 BlockPos pos = lastInteractionRecord.pos;
                 if (mc.level == null) return;
                 BlockState state = mc.level.getBlockState(pos);
+                List<ItemStack> chestItems = null;
+                if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
+                    chestItems = ((SimpleContainer) chestMenu.getContainer()).getItems();
+                } else if (mc.player.containerMenu instanceof ShulkerBoxMenu shulkerBoxMenu) {
+                    chestItems = shulkerBoxMenu.getItems().subList(0, 27);
+                }
                 if (state.getBlock() instanceof ChestBlock) {
                     ChestType chestType = state.getValue(ChestBlock.TYPE);
                     if (chestType == ChestType.LEFT) {
                         pos = getOppositeChestPos(pos, state.getValue(ChestBlock.FACING), chestType);
                     }
-                    MaterialPreparerClient.updateChestItems(pos, ((SimpleContainer) chestMenu.getContainer()).getItems());
+                    MaterialPreparerClient.updateChestItems(pos, chestItems);
+                } else if (isChestLikeContainerBlock(state.getBlock())) {
+                    MaterialPreparerClient.updateChestItems(pos, chestItems);
                 }
             } else {
                 MaterialPreparerClient.showMessage(Component.translatable("message.material_preparer.chest_record_not_chest"));
@@ -63,7 +72,7 @@ public class MixinClientPacketListener {
 
         // 转移物品到输出容器
         if (currentExplorationPhase == ExplorationPhase.WAIT_OUTPUT_SET_CONTENTS) {
-            if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
+            if (mc.player.containerMenu instanceof ChestMenu || mc.player.containerMenu instanceof ShulkerBoxMenu) {
                 int playerInvStart = getPlayerInventoryStartSlot();
                 // 遍历玩家背包，将物品列表中的物品转移到输出容器
                 for (int i = 0; i < 36; i++) {

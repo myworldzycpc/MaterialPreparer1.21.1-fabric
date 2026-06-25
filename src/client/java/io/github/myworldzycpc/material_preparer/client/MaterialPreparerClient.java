@@ -3,7 +3,8 @@ package io.github.myworldzycpc.material_preparer.client;
 import io.github.myworldzycpc.material_preparer.client.config.ItemEntry;
 import io.github.myworldzycpc.material_preparer.client.config.ItemListSerializer;
 import io.github.myworldzycpc.material_preparer.client.config.MaterialPreparerConfig;
-import io.github.myworldzycpc.material_preparer.client.keybind.IKeybindingElement;
+import io.github.myworldzycpc.material_preparer.client.screen.LitematicaFileSelectorScreen;
+import io.github.myworldzycpc.material_preparer.client.keybind.KeybindingElement;
 import io.github.myworldzycpc.material_preparer.client.keybind.KeybindEntry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -23,9 +24,20 @@ import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.entity.BarrelBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -107,7 +119,9 @@ public class MaterialPreparerClient implements ClientModInitializer {
     );
 
     private static void loadItemListFromLitematica() {
-        showMessage(Component.translatable("message.material_preparer.not_implemented"));
+        // 打开文件选择屏幕
+        LitematicaFileSelectorScreen screen = new LitematicaFileSelectorScreen(mc.screen);
+        mc.setScreen(screen);
     }
 
     public static KeybindEntry loadItemListFromCSVKeybind = new KeybindEntry(
@@ -181,7 +195,7 @@ public class MaterialPreparerClient implements ClientModInitializer {
             showDebugMessagesKeybind
     );
 
-    public static IKeybindingElement capturingElement = null;
+    public static KeybindingElement capturingElement = null;
 
     public static void showMessage(Component component) {
         if (mc.player != null) {
@@ -540,4 +554,15 @@ public class MaterialPreparerClient implements ClientModInitializer {
         showMessage(Component.translatable("message.material_preparer.exploring_containers", inRange.size()));
     }
 
+    public static boolean isChestLikeContainerBlock(Block block) {
+        return block instanceof ChestBlock ||
+                block instanceof ShulkerBoxBlock ||
+                block instanceof BarrelBlock;
+    }
+
+    public static boolean isChestLikeContainerBlockEntity(BlockEntity blockEntity) {
+        return blockEntity instanceof ChestBlockEntity ||
+                blockEntity instanceof ShulkerBoxBlockEntity ||
+                blockEntity instanceof BarrelBlockEntity;
+    }
 }

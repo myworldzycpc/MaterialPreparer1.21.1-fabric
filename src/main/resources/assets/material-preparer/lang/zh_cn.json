@@ -14,6 +14,8 @@
   "gui.material_preparer.group.containers.desc": "容器标记与管理",
   "gui.material_preparer.group.rendering": "渲染",
   "gui.material_preparer.group.rendering.desc": "调试渲染，例如边框",
+  "gui.material_preparer.group.messages": "消息",
+  "gui.material_preparer.group.messages.desc": "消息和通知",
 
   "gui.material_preparer.option.item_list": "物品列表",
   "gui.material_preparer.option.item_list.desc": "要收集的物品列表",
@@ -30,7 +32,7 @@
   "gui.material_preparer.keybind.collect_items": "收集物品",
   "gui.material_preparer.keybind.collect_items.desc": "从附近的容器收集物品（根据物品列表）",
   "gui.material_preparer.keybind.load_litematica": "从 Litematica 加载物品列表",
-  "gui.material_preparer.keybind.load_litematica.desc": "从 Litematica (.litematica) 文件加载物品列表",
+  "gui.material_preparer.keybind.load_litematica.desc": "从 Litematica (.litematic) 文件加载物品列表",
   "gui.material_preparer.keybind.load_csv": "从 CSV 加载物品列表",
   "gui.material_preparer.keybind.load_csv.desc": "从 CSV 文件加载物品列表",
   "gui.material_preparer.keybind.debug_borders": "显示调试边框",
@@ -45,6 +47,8 @@
   "gui.material_preparer.keybind.toggle_output_container.desc": "将准星对准的方块设为/取消输出容器",
   "gui.material_preparer.keybind.clear_all_markers": "清除所有标记",
   "gui.material_preparer.keybind.clear_all_markers.desc": "移除所有容器标记（黑名单和输出容器）",
+  "gui.material_preparer.keybind.debug_messages": "切换调试消息",
+  "gui.material_preparer.keybind.debug_messages.desc": "切换调试消息显示，例如物品收集进度和网络活动",
 
   "gui.material_preparer.none": "无",
   "gui.material_preparer.format.ticks": "%d tick",
@@ -57,6 +61,12 @@
   "gui.material_preparer.edit_item.save": "保存",
   "gui.material_preparer.edit_item.cancel": "取消",
   "gui.material_preparer.edit_item.selected": "已选择：%s",
+
+  "gui.material_preparer.select_litematica.title": "选择 Litematica 文件",
+  "gui.material_preparer.select_litematica.load": "加载",
+  "gui.material_preparer.select_litematica.cancel": "取消",
+  "gui.material_preparer.select_litematica.empty": "此目录为空",
+  "gui.material_preparer.select_litematica.parent_folder": "上级",
 
   "message.material_preparer.disconnected": "与服务器断开连接",
   "message.material_preparer.all_items_collected": "所有物品收集成功",
@@ -91,5 +101,8 @@
   "message.material_preparer.ignore_existing_items_on": "忽略已有物品：开启",
   "message.material_preparer.ignore_existing_items_off": "忽略已有物品：关闭",
   "message.material_preparer.chest_record_not_chest": "箱子交互记录类型不是箱子，忽略数据包。",
-  "message.material_preparer.not_implemented": "尚未实现！"
+  "message.material_preparer.not_implemented": "尚未实现！",
+  "message.material_preparer.litematica_loaded": "已从 Litematica 加载 %1$d 种物品：%2$s",
+  "message.material_preparer.litematica_load_failed": "加载 Litematica 文件失败：%s",
+  "message.material_preparer.no_litematica_files": "未找到 Litematica 文件，请将 .litematic 文件放入 schematics 文件夹"
 }

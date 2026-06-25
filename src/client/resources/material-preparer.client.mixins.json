@@ -3,7 +3,6 @@
 	"package": "io.github.myworldzycpc.material_preparer.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin",
 		"MixinClientPacketListener"
 	],
 	"injectors": {

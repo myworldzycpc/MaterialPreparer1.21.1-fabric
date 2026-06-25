@@ -72,7 +72,7 @@ public class ModMenuIntegration implements ModMenuApi {
                 .category(ConfigCategory.createBuilder()
                         .name(Component.translatable("gui.material_preparer.category.item_list"))
                         .tooltip(Component.translatable("gui.material_preparer.category.item_list.tooltip"))
-                        .option(KeybindHelper.actionOption("gui.material_preparer.keybind.load_litematica", "gui.material_preparer.keybind.load_litematica.desc", loadItemListFromLitematicaKeybind, false))
+                        .option(KeybindHelper.actionOption("gui.material_preparer.keybind.load_litematica", "gui.material_preparer.keybind.load_litematica.desc", loadItemListFromLitematicaKeybind, true))
                         .option(KeybindHelper.actionOption("gui.material_preparer.keybind.load_csv", "gui.material_preparer.keybind.load_csv.desc", loadItemListFromCSVKeybind, false))
                         .option(ListOption.<ItemEntry>createBuilder()
                                 .name(Component.translatable("gui.material_preparer.option.item_list"))

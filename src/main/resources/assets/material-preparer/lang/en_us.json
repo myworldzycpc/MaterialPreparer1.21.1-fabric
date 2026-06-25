@@ -14,6 +14,8 @@
   "gui.material_preparer.group.containers.desc": "Container marking and management",
   "gui.material_preparer.group.rendering": "Rendering",
   "gui.material_preparer.group.rendering.desc": "Debug rendering, such as borders",
+  "gui.material_preparer.group.messages": "Messages",
+  "gui.material_preparer.group.messages.desc": "Messages and notifications",
 
   "gui.material_preparer.option.item_list": "Item List",
   "gui.material_preparer.option.item_list.desc": "List of items to collect",
@@ -30,7 +32,7 @@
   "gui.material_preparer.keybind.collect_items": "Collect Items",
   "gui.material_preparer.keybind.collect_items.desc": "Collect items from nearby containers (according to the item list)",
   "gui.material_preparer.keybind.load_litematica": "Load Item List from Litematica",
-  "gui.material_preparer.keybind.load_litematica.desc": "Load item list from Litematica (.litematica) file",
+  "gui.material_preparer.keybind.load_litematica.desc": "Load item list from Litematica (.litematic) file",
   "gui.material_preparer.keybind.load_csv": "Load Item List from CSV",
   "gui.material_preparer.keybind.load_csv.desc": "Load item list from CSV file",
   "gui.material_preparer.keybind.debug_borders": "Show Debugging Borders",
@@ -45,6 +47,8 @@
   "gui.material_preparer.keybind.toggle_output_container.desc": "Set/unset targeted block as output container",
   "gui.material_preparer.keybind.clear_all_markers": "Clear All Markers",
   "gui.material_preparer.keybind.clear_all_markers.desc": "Remove all container markers (blacklist and output containers)",
+  "gui.material_preparer.keybind.debug_messages": "Toggle Debug Messages",
+  "gui.material_preparer.keybind.debug_messages.desc": "Toggle debug messages, such as item collection progress and network activity",
 
   "gui.material_preparer.none": "None",
   "gui.material_preparer.format.ticks": "%d ticks",
@@ -57,6 +61,12 @@
   "gui.material_preparer.edit_item.save": "Save",
   "gui.material_preparer.edit_item.cancel": "Cancel",
   "gui.material_preparer.edit_item.selected": "Selected: %s",
+
+  "gui.material_preparer.select_litematica.title": "Select Litematica File",
+  "gui.material_preparer.select_litematica.load": "Load",
+  "gui.material_preparer.select_litematica.cancel": "Cancel",
+  "gui.material_preparer.select_litematica.empty": "No .litematic files found",
+  "gui.material_preparer.select_litematica.parent_folder": "Up",
 
   "message.material_preparer.disconnected": "Disconnected from the server",
   "message.material_preparer.all_items_collected": "All items collected successfully",
@@ -91,5 +101,8 @@
   "message.material_preparer.ignore_existing_items_on": "Ignore Existing Items: ON",
   "message.material_preparer.ignore_existing_items_off": "Ignore Existing Items: OFF",
   "message.material_preparer.chest_record_not_chest": "Chest Interaction Record Type is not Chest, ignoring packet.",
-  "message.material_preparer.not_implemented": "Not Implemented!"
+  "message.material_preparer.not_implemented": "Not Implemented!",
+  "message.material_preparer.litematica_loaded": "Loaded %1$d item types from Litematica: %2$s",
+  "message.material_preparer.litematica_load_failed": "Failed to load Litematica file: %s",
+  "message.material_preparer.no_litematica_files": "No Litematica files found. Please put .litematic files in the schematics folder"
 }

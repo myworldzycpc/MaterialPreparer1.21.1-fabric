@@ -22,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -53,8 +54,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 import static io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient.*;
-import static io.github.myworldzycpc.material_preparer.client.config.MaterialPreparerConfig.HANDLER;
-import static io.github.myworldzycpc.material_preparer.client.ModMenuIntegration.getModConfigScreen;
 import static io.github.myworldzycpc.material_preparer.client.keybind.KeybindHelper.withScreenGuard;
 
 public class EventHandler {
@@ -73,6 +72,8 @@ public class EventHandler {
                     chestMap.remove(oppositePos);
                 }
             }
+        } else if (isChestLikeContainerBlockEntity(blockEntity)) {
+            chestMap.put(pos, null);
         }
     }
 
@@ -91,6 +92,8 @@ public class EventHandler {
                     }
                 }
             }
+        } else if (isChestLikeContainerBlockEntity(blockEntity)) {
+            chestMap.remove(pos);
         }
     }
 
@@ -262,8 +265,13 @@ public class EventHandler {
                 }
             }
             case PROCESS_NEXT_ITEM -> {
+                List<ItemStack> chestItems = null;
                 if (mc.player.containerMenu instanceof ChestMenu chestMenu) {
-                    List<ItemStack> chestItems = ((SimpleContainer) chestMenu.getContainer()).getItems();
+                    chestItems = ((SimpleContainer) chestMenu.getContainer()).getItems();
+                } else if (mc.player.containerMenu instanceof ShulkerBoxMenu shulkerBoxMenu) {
+                    chestItems = shulkerBoxMenu.getItems().subList(0, 27);
+                }
+                if (chestItems != null) {
                     boolean found = false;
                     for (int i = 0; i < chestItems.size(); i++) {
                         ItemStack stack = chestItems.get(i);
@@ -380,7 +388,7 @@ public class EventHandler {
     public static InteractionResult onUseBlock(Player player, Level world, InteractionHand interactionHand, BlockHitResult hitResult) {
         if (currentExplorationPhase != ExplorationPhase.IDLE) return InteractionResult.PASS;
         BlockPos pos = hitResult.getBlockPos();
-        if (world.getBlockState(pos).getBlock() instanceof ChestBlock) {
+        if (isChestLikeContainerBlock(world.getBlockState(pos).getBlock())) {
             lastInteractionRecord.updateRecord(pos, InteractionRecord.Type.CHEST);
         } else if (world.getBlockState(pos).getBlock() instanceof CraftingTableBlock) {
             lastInteractionRecord.updateRecord(pos, InteractionRecord.Type.CRAFTING_TABLE);
@@ -403,7 +411,7 @@ public class EventHandler {
         BlockPos outputPos = scheduledOutputContainers.removeFirst();
         currentExplorationPhase = ExplorationPhase.WAIT_OUTPUT_OPEN;
         lastInteractionRecord.updateRecord(outputPos, InteractionRecord.Type.CHEST);
-        if (mc.level != null && mc.level.getBlockState(outputPos).getBlock() instanceof ChestBlock) {
+        if (mc.level != null && isChestLikeContainerBlock(mc.level.getBlockState(outputPos).getBlock())) {
             interactBlock(outputPos);
         } else {
             // 不是箱子，直接跳到 WAIT_OUTPUT_CLOSE，继续尝试下一个
