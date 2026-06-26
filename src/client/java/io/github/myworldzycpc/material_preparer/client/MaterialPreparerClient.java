@@ -170,6 +170,12 @@ public class MaterialPreparerClient implements ClientModInitializer {
             () -> config.clearAllMarkersKeybind
     );
 
+    public static KeybindEntry statCachedItemsKeybind = new KeybindEntry(
+            MaterialPreparerClient::statCachedItems,
+            val -> config.statCachedItemsKeybind = val,
+            () -> config.statCachedItemsKeybind
+    );
+
     public static KeybindEntry showDebugMessagesKeybind = new KeybindEntry(
             () -> {
                 config.showDebugMessages = !config.showDebugMessages;
@@ -192,6 +198,7 @@ public class MaterialPreparerClient implements ClientModInitializer {
             toggleBlacklistKeybind,
             toggleOutputContainerKeybind,
             clearAllMarkersKeybind,
+            statCachedItemsKeybind,
             showDebugMessagesKeybind
     );
 
@@ -262,6 +269,84 @@ public class MaterialPreparerClient implements ClientModInitializer {
         blacklistedContainers.clear();
         outputContainers.clear();
         showMessage(Component.translatable("message.material_preparer.all_markers_cleared"));
+    }
+
+    // 仅统计缓存中的物品，与物品列表比较，显示还差什么
+    public static void statCachedItems() {
+        if (mc.player == null) return;
+        if (itemList == null || itemList.isEmpty()) {
+            showMessage(Component.translatable("message.material_preparer.item_list_empty"));
+            return;
+        }
+
+        // 统计 chestMap 中所有物品的总数量（排除黑名单）
+        Map<Item, Integer> cachedCounts = new HashMap<>();
+        int containerCount = 0;
+
+        for (Map.Entry<BlockPos, List<ItemStack>> entry : chestMap.entrySet()) {
+            BlockPos pos = entry.getKey();
+            // 排除黑名单
+            if (blacklistedContainers.contains(pos)) {
+                continue;
+            }
+            containerCount++;
+
+            List<ItemStack> items = entry.getValue();
+            if (items == null) continue;
+            for (ItemStack stack : items) {
+                if (stack.isEmpty()) continue;
+                Item item = stack.getItem();
+                cachedCounts.put(item, cachedCounts.getOrDefault(item, 0) + stack.getCount());
+            }
+        }
+
+        // 统计玩家物品栏
+        Inventory inv = mc.player.getInventory();
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = inv.getItem(i);
+            if (stack.isEmpty()) continue;
+            Item item = stack.getItem();
+            cachedCounts.put(item, cachedCounts.getOrDefault(item, 0) + stack.getCount());
+        }
+
+        // 计算还需要的物品
+        List<ItemEntry> missingItems = new ArrayList<>();
+        int missingTypes = 0;
+
+        for (ItemEntry entry : itemList) {
+            Item item = entry.item();
+            int needed = entry.count();
+            int cached = cachedCounts.getOrDefault(item, 0);
+            int missing = Math.max(0, needed - cached);
+
+            if (missing > 0) {
+                missingTypes++;
+                missingItems.add(new ItemEntry(item, missing));
+            }
+        }
+
+        // 显示结果
+        if (missingTypes == 0) {
+            showMessage(Component.translatable("message.material_preparer.all_items_cached", containerCount));
+        } else {
+            showMessage(Component.translatable("message.material_preparer.stat_cached_result", missingTypes, containerCount));
+            // 显示每个缺少的物品
+            for (ItemEntry entry : missingItems) {
+                Item item = entry.item();
+                int missing = entry.count();
+                int needed = 0;
+                int cached = cachedCounts.getOrDefault(item, 0);
+                // 找到物品列表中的需求数量
+                for (ItemEntry e : itemList) {
+                    if (e.item().equals(item)) {
+                        needed = e.count();
+                        break;
+                    }
+                }
+                showMessage(Component.translatable("message.material_preparer.stat_cached_item",
+                        item.getDefaultInstance().getDisplayName(), missing, cached, needed));
+            }
+        }
     }
 
     // 检查玩家背包是否已满（主背包 + 快捷栏）

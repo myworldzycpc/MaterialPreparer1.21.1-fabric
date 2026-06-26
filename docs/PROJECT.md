@@ -1,4 +1,4 @@
-# Material Preparer 项目文档
+# Material Preparer 项目文档 (v1.0.0)
 
 ## 目录
 
@@ -13,7 +13,7 @@
 
 ## 项目介绍
 
-Material Preparer 是一个 Minecraft Fabric 模组，旨在帮助玩家自动收集和整理建筑材料。玩家可以配置需要的物品列表，模组会自动探索附近的容器（箱子等），并根据列表收集所需的物品。
+Material Preparer 是一个 Minecraft Fabric 模组，旨在帮助玩家自动收集和整理材料。玩家可以配置需要的物品列表，模组会自动探索附近的容器（箱子等），并根据列表收集所需的物品。
 
 ### 核心特性
 
@@ -105,7 +105,7 @@ message.material_preparer.*                    # 游戏内消息
 
 ### 4. 精确物品移动 (Precise Move)
 
-当 `alwaysQuickMove` 为 false 时，不使用 Shift+点击快速移动，而是使用精确的拾取和放置操作，只移动需要的数量。
+当 `alwaysQuickMove` 为 false 时，不全部使用 Shift+点击快速移动，而是使用精确的拾取和放置操作，只移动需要的数量。
 
 **工作原理**:
 1. 左键（PICKUP）拿起整个堆叠
@@ -322,7 +322,7 @@ message.material_preparer.*                    # 游戏内消息
 
 ```
 io.github.myworldzycpc.material_preparer/
-├── MaterialPreparer.java              # 主类（服务端）
+├── MaterialPreparer.java              # 主类
 ├── client/                            # 客户端代码
 │   ├── MaterialPreparerClient.java    # 客户端主类
 │   ├── ModMenuIntegration.java        # ModMenu 集成
@@ -332,15 +332,15 @@ io.github.myworldzycpc.material_preparer/
 │   ├── config/                        # 配置相关
 │   │   ├── MaterialPreparerConfig.java  # 配置类
 │   │   ├── ItemEntry.java               # 物品条目
-│   │   ├── ItemEntryController.java     # 物品条目控制器（YACL）
+│   │   ├── ItemEntryController.java     # 物品条目控件（YACL）
 │   │   └── ItemListSerializer.java      # CSV 序列化工具
 │   ├── keybind/                       # 快捷键相关
-│   │   ├── IKeybindingElement.java      # 快捷键元素接口
+│   │   ├── KeybindingElement            # 快捷键元素基类
 │   │   ├── KeybindEntry.java            # 快捷键条目
 │   │   ├── CustomKeybind.java           # 自定义快捷键
 │   │   ├── KeybindHelper.java           # 快捷键辅助工具
-│   │   ├── ActionKeybindController.java # 动作型快捷键控制器
-│   │   └── TickBoxKeybindController.java # 勾选框型快捷键控制器
+│   │   ├── ActionKeybindController.java # 动作型快捷键控件
+│   │   └── TickBoxKeybindController.java # 勾选框型快捷键控件
 │   ├── screen/                        # 屏幕相关
 │   │   ├── ScreenHasParent.java         # 带父屏幕的基类
 │   │   ├── EditItemScreen.java          # 编辑物品界面

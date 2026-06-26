@@ -61,6 +61,9 @@ public class MaterialPreparerConfig {
     public String clearAllMarkersKeybind = "unbound";
 
     @SerialEntry
+    public String statCachedItemsKeybind = "unbound";
+
+    @SerialEntry
     public boolean showDebugMessages = false;
     @SerialEntry
     public String showDebugMessagesKeybind = "unbound";

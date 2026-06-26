@@ -3,7 +3,15 @@
 [![EN](https://img.shields.io/badge/English-blue.svg)](README.md)
 [![中文](https://img.shields.io/badge/简体中文-blue.svg)](README.zh-CN.md)
 
-A Minecraft Fabric mod that helps you automatically collect and organize building materials.
+A Minecraft Fabric mod that helps you automatically collect and organize materials.
+
+> [!WARNING]
+>
+> This mod is a client-side mod and theoretically does not require server installation. However, due to its strong assistant nature, some servers may prohibit its use.
+>
+> Before use, make sure that the server allows the use of such features to avoid being banned.
+>
+> Any bans, losses, or legal disputes resulting from the use of this mod are **not the responsibility of the mod author**.
 
 ## Features
 
@@ -14,7 +22,7 @@ A Minecraft Fabric mod that helps you automatically collect and organize buildin
 
 ### 🗺️ Container Exploration
 - Automatically explores nearby containers and caches item information
-- Supports blacklist marking to skip unwanted chests
+- Supports blacklist marking to skip unwanted containers
 - Supports output container marking – automatically stores items when inventory is full
 
 ### 📋 Multiple Import Methods
@@ -41,7 +49,7 @@ A Minecraft Fabric mod that helps you automatically collect and organize buildin
 
 ### Configuring the Item List
 
-1. Open Mod Menu (default keybind: `Mod Menu` shortcut)
+1. Open Mod Menu
 2. Find Material Preparer and click "Configure"
 3. Add the items and quantities you need in the "Item List" category
 4. Click Save
@@ -57,7 +65,7 @@ A Minecraft Fabric mod that helps you automatically collect and organize buildin
 
 1. Place your `.litematic` schematic file into the `schematics` folder
 2. Open the configuration interface
-3. In the "General" category, find "Load item list from Litematica"
+3. In the "Item List" category, find "Load item list from Litematica"
 4. Select the schematic file you want to load from the file selection interface
 5. Click the "Load" button
 
@@ -77,11 +85,11 @@ A Minecraft Fabric mod that helps you automatically collect and organize buildin
 
 ### General Settings
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| Minimum Click Interval | Minimum interval between container clicks (ticks), 0 = no limit | 0 |
-| Always Quick Move | Whether to use Shift+click for quick movement | Enabled |
-| Ignore Existing Items | Whether to collect only items missing from inventory | Disabled |
+| Option | Description                                                     | Default  |
+|--------|-----------------------------------------------------------------|----------|
+| Minimum Click Interval | Minimum interval between container clicks (ticks), 0 = no limit | 0        |
+| Always Quick Move | Whether to always use Shift+click for quick movement            | Disabled |
+| Ignore Existing Items | Whether to collect only items missing from inventory            | Disabled |
 
 ### Container Management
 

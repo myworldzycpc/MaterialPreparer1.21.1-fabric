@@ -44,6 +44,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                 .option(KeybindHelper.actionOption("gui.material_preparer.keybind.open_screen", "gui.material_preparer.keybind.open_screen.desc", openScreenKeybind, false))
                                 .option(KeybindHelper.actionOption("gui.material_preparer.keybind.explore_containers", "gui.material_preparer.keybind.explore_containers.desc", exploreAllNearbyContainerKeybind, true))
                                 .option(KeybindHelper.actionOption("gui.material_preparer.keybind.collect_items", "gui.material_preparer.keybind.collect_items.desc", collectItemsKeybind, true))
+                                .option(KeybindHelper.actionOption("gui.material_preparer.keybind.stat_cached", "gui.material_preparer.keybind.stat_cached.desc", statCachedItemsKeybind, true))
                                 .option(Option.<Integer>createBuilder()
                                         .name(Component.translatable("gui.material_preparer.option.min_click_interval"))
                                         .description(OptionDescription.of(Component.translatable("gui.material_preparer.option.min_click_interval.desc")))
