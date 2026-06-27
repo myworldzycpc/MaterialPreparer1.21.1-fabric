@@ -136,7 +136,7 @@ Want to learn more about implementation details, architecture, and future plans?
 
 ## Supported Versions
 
-- Minecraft 1.21.1
+- Minecraft 1.21.1, 26.2
 - Fabric Loader
 
 ## Dependencies
