@@ -33,7 +33,10 @@ public class KeybindHelper {
                 .customController(opt -> new ActionKeybindController(
                         opt, entry.keybind,
                         () -> {
-                            if (closeGui && mc.gui.screen() != null) mc.gui.screen().onClose();
+                            if (closeGui && mc.gui.screen() != null) {
+                                mc.gui.screen().onClose();
+                                mc.gui.setScreen(null);
+                            }
                             entry.action.run();
                         },
                         kb -> {

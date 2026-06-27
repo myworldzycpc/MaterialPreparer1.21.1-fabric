@@ -2,6 +2,7 @@ package io.github.myworldzycpc.material_preparer.client.screen;
 
 import dev.isxander.yacl3.api.ListOptionEntry;
 import io.github.myworldzycpc.material_preparer.client.config.ItemEntry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient.mc;
 
@@ -111,18 +113,18 @@ public class EditItemScreen extends ScreenHasParent {
 
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        extractBackground(graphics, mouseX, mouseY, delta);
+//        extractBackground(graphics, mouseX, mouseY, delta);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        graphics.centeredText(mc.font, this.title, width / 2, 10, 0xFFFFFF);
-        graphics.text(mc.font, Component.translatable("gui.material_preparer.edit_item.search_label"), searchBox.getX() - mc.font.width(Component.translatable("gui.material_preparer.edit_item.search_label")) - 5, 45, 0xAAAAAA);
-        graphics.text(mc.font, Component.translatable("gui.material_preparer.edit_item.count_label"), width / 2 - 80, height - 45, 0xAAAAAA);
+        graphics.centeredText(mc.font, this.title, width / 2, 10, 0xFFFFFFFF);
+        graphics.text(mc.font, Component.translatable("gui.material_preparer.edit_item.search_label"), searchBox.getX() - mc.font.width(Component.translatable("gui.material_preparer.edit_item.search_label")) - 5, 45, 0xFFAAAAAA);
+        graphics.text(mc.font, Component.translatable("gui.material_preparer.edit_item.count_label"), width / 2 - 80, height - 45, 0xFFAAAAAA);
 
         drawItemGrid(graphics, mouseX, mouseY);
 
         if (selectedItem != null) {
             String id = BuiltInRegistries.ITEM.getKey(selectedItem).toString();
-            graphics.centeredText(mc.font, Component.translatable("gui.material_preparer.edit_item.selected", id), width / 2, height - 80, 0xFFFF55);
+            graphics.centeredText(mc.font, Component.translatable("gui.material_preparer.edit_item.selected", id), width / 2, height - 80, 0xFFFFFF55);
         }
     }
 
@@ -147,10 +149,26 @@ public class EditItemScreen extends ScreenHasParent {
             int bgColor = isSelected ? 0x80FFFF00 : (isHovered ? 0x40FFFFFF : 0x20000000);
             graphics.fill(x, y, x + ITEM_SIZE, y + ITEM_SIZE, bgColor);
 
-            graphics.item(new ItemStack(item), x + 1, y + 1);
+            try {
+                graphics.item(new ItemStack(item), x + 1, y + 1);
+            } catch (Exception _) {
+            }
 
             if (isHovered && selectedItem != item) {
-                graphics.itemDecorations(mc.font, new ItemStack(item), mouseX, mouseY);
+                try {
+                    graphics.setTooltipForNextFrame(mc.font, new ItemStack(item), mouseX, mouseY);
+                } catch (Exception _) {
+                    String id = BuiltInRegistries.ITEM.getKey(item).toString();
+                    graphics.setTooltipForNextFrame(
+                            mc.font,
+                            List.of(
+                                    Component.literal(id),
+                                    Component.translatable("gui.material_preparer.edit_item.uninitialized").withStyle(ChatFormatting.RED)
+                            ),
+                            Optional.empty(),
+                            mouseX, mouseY
+                    );
+                }
             }
         }
     }

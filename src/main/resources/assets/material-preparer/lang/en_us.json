@@ -63,6 +63,7 @@
   "gui.material_preparer.edit_item.save": "Save",
   "gui.material_preparer.edit_item.cancel": "Cancel",
   "gui.material_preparer.edit_item.selected": "Selected: %s",
+  "gui.material_preparer.edit_item.uninitialized": "Item not initialized, unable to get item name. Enter the game to initialize.",
 
   "gui.material_preparer.select_litematica.title": "Select Litematica File",
   "gui.material_preparer.select_litematica.load": "Load",

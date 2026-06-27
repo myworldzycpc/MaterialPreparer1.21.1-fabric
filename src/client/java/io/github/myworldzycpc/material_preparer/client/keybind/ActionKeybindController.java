@@ -1,5 +1,6 @@
 package io.github.myworldzycpc.material_preparer.client.keybind;
 
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import dev.isxander.yacl3.api.Controller;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.utils.Dimension;
@@ -87,6 +88,14 @@ public record ActionKeybindController(Option<Component> option, CustomKeybind ke
         public void capture(int keyCode, int scanCode, int modifiers) {
             super.capture(keyCode, scanCode, modifiers);
             control.onKeybindChanged().accept(getKeybind());
+        }
+
+        @Override
+        protected void extractHoveredControl(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+            super.extractHoveredControl(graphics, mouseX, mouseY, a);
+            if (this.hovered) {
+                graphics.requestCursor(this.isAvailable() ? CursorTypes.POINTING_HAND : CursorTypes.NOT_ALLOWED);
+            }
         }
     }
 }

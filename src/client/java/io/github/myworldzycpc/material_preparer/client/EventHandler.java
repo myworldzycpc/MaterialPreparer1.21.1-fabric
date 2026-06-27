@@ -3,8 +3,12 @@ package io.github.myworldzycpc.material_preparer.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.util.ARGB;
+
 import io.github.myworldzycpc.material_preparer.client.keybind.KeybindEntry;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.Minecraft;
@@ -12,10 +16,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -130,54 +131,48 @@ public class EventHandler {
         if (config.showDebuggingBorders) {
             PoseStack poseStack = context.poseStack();
             if (poseStack == null) return;
-            MultiBufferSource consumers = context.consumers();
-            if (consumers == null) return;
-            VertexConsumer vertexConsumer = consumers.getBuffer(RenderTypes.LINES);
-            Vec3 cameraPos = context.camera().getPosition();
+            Vec3 cameraPos = context.levelState().cameraRenderState.pos;
 
-            // 渲染普通容器
-            for (var entry : chestMap.entrySet()) {
-                BlockPos pos = entry.getKey();
-                // 跳过黑名单和输出容器，它们会单独渲染
-                if (blacklistedContainers.contains(pos)) continue;
-                if (outputContainers.contains(pos)) continue;
+            poseStack.pushPose();
+            poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-                boolean isNull = entry.getValue() == null;
+            context.submitNodeCollector().submitCustomGeometry(poseStack, RenderTypes.debugFilledBox(), (pose, buffer) -> {
+                // 普通容器
+                for (var entry : chestMap.entrySet()) {
+                    BlockPos pos = entry.getKey();
+                    if (blacklistedContainers.contains(pos)) continue;
+                    if (outputContainers.contains(pos)) continue;
 
-                float r = isNull ? 0.5f : 1.0f;
-                float g = isNull ? 0.5f : 1.0f;
-                float b = isNull ? 0.5f : 0.0f;
-                float a = 1.0f;
+                    boolean isNull = entry.getValue() == null;
+                    int color = ARGB.colorFromFloat(1.0f, isNull ? 0.5f : 1.0f, isNull ? 0.5f : 1.0f, isNull ? 0.5f : 0.0f);
+                    renderBox(pose, buffer, pos, color);
+                }
 
-                renderBox(poseStack, vertexConsumer, cameraPos, pos, r, g, b, a);
-            }
+                // 黑名单容器（黑色）
+                for (BlockPos pos : blacklistedContainers) {
+                    renderBox(pose, buffer, pos, ARGB.colorFromFloat(1.0f, 0f, 0f, 0f));
+                }
 
-            // 渲染黑名单容器（黑色）
-            for (BlockPos pos : blacklistedContainers) {
-                renderBox(poseStack, vertexConsumer, cameraPos, pos, 0.0f, 0.0f, 0.0f, 1.0f);
-            }
+                // 输出容器（红色）
+                for (BlockPos pos : outputContainers) {
+                    renderBox(pose, buffer, pos, ARGB.colorFromFloat(1.0f, 1f, 0f, 0f));
+                }
+            });
 
-            // 渲染输出容器（红色）
-            for (BlockPos pos : outputContainers) {
-                renderBox(poseStack, vertexConsumer, cameraPos, pos, 1.0f, 0.0f, 0.0f, 1.0f);
-            }
+            poseStack.popPose();
         }
     }
 
-    private static void renderBox(PoseStack poseStack, VertexConsumer vertexConsumer, Vec3 cameraPos, BlockPos pos, float r, float g, float b, float a) {
-        poseStack.pushPose();
-        poseStack.translate(
-                pos.getX() - cameraPos.x,
-                pos.getY() - cameraPos.y,
-                pos.getZ() - cameraPos.z
-        );
-        LevelRenderer.renderLineBox(
-                poseStack, vertexConsumer,
-                0, 0, 0,
-                1, 1, 1,
-                r, g, b, a
-        );
-        poseStack.popPose();
+    private static void renderBox(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, int color) {
+        float minX = pos.getX();
+        float minY = pos.getY();
+        float minZ = pos.getZ();
+        float maxX = minX + 1;
+        float maxY = minY + 1;
+        float maxZ = minZ + 1;
+        AABB box = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
+
+        Gizmos.cuboid(box, GizmoStyle.stroke(color));
     }
 
     public static void onDisconnect(ClientPacketListener clientPacketListener, Minecraft minecraft) {

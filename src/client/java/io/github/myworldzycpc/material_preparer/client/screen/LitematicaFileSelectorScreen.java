@@ -246,17 +246,17 @@ public class LitematicaFileSelectorScreen extends ScreenHasParent {
 
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        extractBackground(graphics, mouseX, mouseY, delta);
+//        extractBackground(graphics, mouseX, mouseY, delta);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 
         // 绘制标题
-        graphics.centeredText(mc.font, this.title, width / 2, 8, 0xFFFFFF);
+        graphics.centeredText(mc.font, this.title, width / 2, 8, 0xFFFFFFFF);
 
         // 绘制路径
         String pathText = getRelativePath();
         int pathX = listLeft + 70; // 留出返回按钮的位置
         int pathY = TITLE_HEIGHT + 8;
-        graphics.text(mc.font, pathText, pathX, pathY, 0xAAAAAA);
+        graphics.text(mc.font, pathText, pathX, pathY, 0xFFAAAAAA);
 
         // 绘制文件列表背景
         int listBottom = height - LIST_BOTTOM_OFFSET;
@@ -270,7 +270,7 @@ public class LitematicaFileSelectorScreen extends ScreenHasParent {
             // 显示空提示
             graphics.centeredText(mc.font,
                     Component.translatable("gui.material_preparer.select_litematica.empty"),
-                    width / 2, (LIST_TOP + listBottom) / 2 - 10, 0xAAAAAA);
+                    width / 2, (LIST_TOP + listBottom) / 2 - 10, 0xFFAAAAAA);
             return;
         }
 
@@ -310,11 +310,11 @@ public class LitematicaFileSelectorScreen extends ScreenHasParent {
 
             int textColor;
             if (isSelected) {
-                textColor = 0x000000;
+                textColor = 0xFF000000;
             } else if (item.type == ListItem.Type.FOLDER) {
-                textColor = 0x55FFFF; // 文件夹用青色
+                textColor = 0xFF55FFFF; // 文件夹用青色
             } else {
-                textColor = 0xFFFFFF; // 文件用白色
+                textColor = 0xFFFFFFFF; // 文件用白色
             }
 
             graphics.text(mc.font, displayName, listLeft + 10, y + 6, textColor);
