@@ -75,6 +75,8 @@ jar {
 	def projectName = project.name
 	inputs.property "projectName", projectName
 
+	archiveFileName = "${project.name}-${version}-${minecraft_version}-fabric.jar"
+
 	from("LICENSE") {
 		rename { "${it}_$projectName"}
 	}
