@@ -1,38 +1,42 @@
 {
-	"schemaVersion": 1,
-	"id": "material-preparer",
-	"version": "${version}",
-	"name": "Material Preparer",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"myworldzycpc"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "MIT",
-	"icon": "assets/material-preparer/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"io.github.myworldzycpc.material_preparer.MaterialPreparer"
-		],
-		"client": [
-			"io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient"
-		]
-	},
-	"mixins": [
-		"material-preparer.mixins.json",
-		{
-			"config": "material-preparer.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.19.3",
-		"minecraft": "~26.2",
-		"java": ">=25",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "material-preparer",
+  "version": "${version}",
+  "name": "Material Preparer",
+  "description": "A mod that provides a simple way to prepare materials.",
+  "authors": [
+    "myworldzycpc"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "MIT",
+  "icon": "assets/material-preparer/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.myworldzycpc.material_preparer.MaterialPreparer"
+    ],
+    "client": [
+      "io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient"
+    ],
+    "modmenu": [
+      "io.github.myworldzycpc.material_preparer.client.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "material-preparer.mixins.json",
+    {
+      "config": "material-preparer.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "yet_another_config_lib_v3": ">=3.9.5"
+  }
 }

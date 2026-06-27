@@ -1,9 +1,8 @@
 {
 	"required": true,
 	"package": "io.github.myworldzycpc.material_preparer.mixin",
-	"compatibilityLevel": "JAVA_25",
+	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
