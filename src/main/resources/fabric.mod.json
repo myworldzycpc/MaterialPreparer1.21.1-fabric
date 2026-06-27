@@ -8,8 +8,8 @@
 		"myworldzycpc"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/myworldzycpc/MaterialPreparer",
+		"sources": "https://github.com/myworldzycpc/MaterialPreparer"
 	},
 	"license": "MIT",
 	"icon": "assets/material-preparer/icon.png",
