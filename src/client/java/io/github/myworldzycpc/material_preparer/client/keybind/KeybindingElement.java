@@ -3,21 +3,22 @@ package io.github.myworldzycpc.material_preparer.client.keybind;
 import dev.isxander.yacl3.api.Controller;
 import dev.isxander.yacl3.api.utils.Dimension;
 import dev.isxander.yacl3.gui.YACLScreen;
-import dev.isxander.yacl3.gui.controllers.ControllerWidget;
 import dev.isxander.yacl3.gui.utils.GuiUtils;
 import io.github.myworldzycpc.material_preparer.client.MaterialPreparerClient;
+import io.github.myworldzycpc.material_preparer.client.config.SubActionElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
-public abstract class KeybindingElement<T extends Controller<?>> extends ControllerWidget<T> {
+public abstract class KeybindingElement<T extends Controller<?>> extends SubActionElement<T> {
 
     public KeybindingElement(T control, YACLScreen screen, Dimension<Integer> dim) {
         super(control, screen, dim);
     }
 
-    public int getKeybindWidth() {
+    @Override
+    public int getSubActionWidth() {
         return 50;
     }
 
@@ -40,7 +41,8 @@ public abstract class KeybindingElement<T extends Controller<?>> extends Control
         }
     }
 
-    public Component getKeybindText() {
+    @Override
+    public Component getSubActionText() {
         if (isCapturing()) return Component.literal("...").withStyle(ChatFormatting.YELLOW);
         return getKeybind().getDisplayName();
     }
@@ -67,51 +69,13 @@ public abstract class KeybindingElement<T extends Controller<?>> extends Control
         stopCapturing();
     }
 
-    public boolean isBodyHovered(int mouseX, int mouseY) {
-        if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
-        return !isKeybindHovered(mouseX, mouseY);
-    }
-
-    public boolean isKeybindHovered(int mouseX, int mouseY) {
-        if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
-        return mouseX >= getDimension().xLimit() - getKeybindWidth();
-    }
-
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!isMouseOver(mouseX, mouseY) || !isAvailable()) return false;
-        if (mouseX >= getDimension().xLimit() - getKeybindWidth()) {
-            toggleCapturing();
-            playDownSound();
-            return true;
-        }
-        return mouseClickedOnBody(mouseX, mouseY, button);
-    }
-
-    public boolean mouseClickedOnBody(double mouseX, double mouseY, int button) {
-        return true;
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        hovered = isMouseOver(mouseX, mouseY);
-
-        Component name = control.option().changed() ? modifiedOptionName : control.option().name();
-        Component shortenedName = Component.literal(GuiUtils.shortenString(name.getString(), textRenderer, getDimension().width() - getControlWidth() - getXPadding() - 7, "...")).setStyle(name.getStyle());
-
-        drawButtonRect(graphics, getDimension().x(), getDimension().y(), getDimension().xLimit() - getKeybindWidth(), getDimension().yLimit(), isBodyHovered(mouseX, mouseY), isAvailable());
-        drawButtonRect(graphics, getDimension().xLimit() - getKeybindWidth(), getDimension().y(), getDimension().xLimit(), getDimension().yLimit(), isKeybindHovered(mouseX, mouseY), isAvailable());
-        graphics.drawString(textRenderer, shortenedName, getDimension().x() + getXPadding(), getTextY(), getValueColor(), true);
-
-        drawValueText(graphics, mouseX, mouseY, delta);
-        if (isHovered()) {
-            drawHoveredControl(graphics, mouseX, mouseY, delta);
-        }
-
-        graphics.drawCenteredString(textRenderer, getKeybindText(), getDimension().xLimit() - getKeybindWidth() / 2, getTextY(), -1);
+    public boolean mouseClickedOnSubAction(double mouseX, double mouseY, int button) {
+        toggleCapturing();
+        return super.mouseClickedOnSubAction(mouseX, mouseY, button);
     }
 
     public Dimension<Integer> getBodyDimension() {
-        return Dimension.ofInt(getDimension().x(), getDimension().y(), getDimension().width() - getKeybindWidth(), getDimension().height());
+        return Dimension.ofInt(getDimension().x(), getDimension().y(), getDimension().width() - getSubActionWidth(), getDimension().height());
     }
 }

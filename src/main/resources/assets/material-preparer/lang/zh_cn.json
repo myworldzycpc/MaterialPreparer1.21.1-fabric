@@ -110,5 +110,6 @@
   "message.material_preparer.not_implemented": "尚未实现！",
   "message.material_preparer.litematica_loaded": "已从 Litematica 加载 %1$d 种物品：%2$s",
   "message.material_preparer.litematica_load_failed": "加载 Litematica 文件失败：%s",
-  "message.material_preparer.no_litematica_files": "未找到 Litematica 文件，请将 .litematic 文件放入 schematics 文件夹"
+  "message.material_preparer.no_litematica_files": "未找到 Litematica 文件，请将 .litematic 文件放入 schematics 文件夹",
+  "gui.material_preparer.item_entry.divide": "拆"
 }

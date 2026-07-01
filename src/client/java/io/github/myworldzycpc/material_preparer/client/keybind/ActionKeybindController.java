@@ -66,7 +66,7 @@ public record ActionKeybindController(Option<Component> option, CustomKeybind ke
         @Override
         protected int getUnhoveredControlWidth() {
             Component execText = control.formatValue();
-            Component keybindText = getKeybindText();
+            Component keybindText = getSubActionText();
             return textRenderer.width(execText) + 5 + textRenderer.width(keybindText) + getXPadding();
         }
 

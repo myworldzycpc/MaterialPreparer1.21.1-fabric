@@ -112,7 +112,7 @@ public final class TickBoxKeybindController extends TickBoxController {
 
         @Override
         protected int getUnhoveredControlWidth() {
-            return TICKBOX_SIZE + 5 + textRenderer.width(getKeybindText()) + getXPadding();
+            return TICKBOX_SIZE + 5 + textRenderer.width(getSubActionText()) + getXPadding();
         }
 
         @Override

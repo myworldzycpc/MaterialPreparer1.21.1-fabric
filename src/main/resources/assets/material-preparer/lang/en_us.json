@@ -110,5 +110,6 @@
   "message.material_preparer.not_implemented": "Not Implemented!",
   "message.material_preparer.litematica_loaded": "Loaded %1$d item types from Litematica: %2$s",
   "message.material_preparer.litematica_load_failed": "Failed to load Litematica file: %s",
-  "message.material_preparer.no_litematica_files": "No Litematica files found. Please put .litematic files in the schematics folder"
+  "message.material_preparer.no_litematica_files": "No Litematica files found. Please put .litematic files in the schematics folder",
+  "gui.material_preparer.item_entry.divide": "T"
 }
